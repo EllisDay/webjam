@@ -24,22 +24,23 @@ function Register({ onLogin }){
     return (
         <div className='pageBkg'>
             <form onSubmit={manageLogin} className='inputBlock'>
+                <p className='title'>Register</p>
                 <input
-                    className='userInput'
+                    className='emailInput'
                     type="email"
                     value={email}
                     onChange={setTheEmail}
                     placeholder="Enter Email"
                 />
                 <input
-                    className='userInput'
+                    className='pwordInput'
                     type="password"
                     value={pword}
                     onChange={setThePword}
                     placeholder="Enter Password"
                 />
                 <button className='userButton'type="submit">Register</button>
-                <p className='regLink'>Already have an account? <button onClick={onLogin}>click here</button></p>
+                <div className='butContainer'><p className='regLink'>Already have an account? <button className='clickLink' onClick={onLogin}>click here</button></p></div>
             </form>
         </div>
     );
