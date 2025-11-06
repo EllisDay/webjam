@@ -40,7 +40,9 @@ function Register({ onLogin }){
                     placeholder="Enter Password"
                 />
                 <button className='userButton'type="submit">Register</button>
-                <div className='butContainer'><p className='regLink'>Already have an account? <button className='clickLink' onClick={onLogin}>click here</button></p></div>
+                <div className='butContainer'>
+                    <p className='regLink'>Already have an account? <button className='clickLink' onClick={onLogin}>click here</button></p>
+                </div>
             </form>
         </div>
     );

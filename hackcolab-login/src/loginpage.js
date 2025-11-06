@@ -3,7 +3,7 @@ import { auth } from "./firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from 'react';
 
-function Login({onRegister, onSuccess}) {
+function Login({onRegister, onSuccess, onForgot}) {
     const [email, setEmail] = useState(""); 
     const [pword, setPword] = useState("");
     async function manageLogin(e){ 
@@ -41,7 +41,10 @@ function Login({onRegister, onSuccess}) {
                     placeholder="Enter Password"
                 />
                 <button className='userButton'type="submit">Login</button>
-                <div className='butContainer'><p className='regLink'>Don't have an account? <button className="clickLink" onClick={onRegister}>click here</button></p></div>
+                <div className='butContainer'>
+                    <p className='regLink'>Don't have an account? <button className="clickLink" onClick={onRegister}>click here</button></p>
+                    <p className='regLink'>Forgot Password? <button className='clickLink' onClick={onForgot}>click here</button></p>
+                </div>
             </form>
         </div>
     );
