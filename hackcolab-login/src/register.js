@@ -1,32 +1,31 @@
 import './loginreg.css';
-import { auth } from "./firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "./firebase.js";
+import { createUserWithEmailAndPassword} from "firebase/auth";
 import { useState } from 'react';
 
-function Login({onRegister, onSuccess}) {
+function Register({ onLogin }){
     const [email, setEmail] = useState(""); 
     const [pword, setPword] = useState("");
     async function manageLogin(e){ 
         e.preventDefault();
         try {
-            await signInWithEmailAndPassword(auth, email, pword);
-            alert("Login successful!"); 
-            onSuccess();
+            await createUserWithEmailAndPassword(auth, email, pword);
+            alert("Creation Succesful!"); 
         } catch (loginError) { 
             alert(loginError.message);
         }
     };
     function setTheEmail(e){
-            setEmail(e.target.value);
-        };
+        setEmail(e.target.value);
+    };
     function setThePword(e){
-            setPword(e.target.value);
-        };
+        setPword(e.target.value);
+    };
     return (
         <div className='pageBkg'>
             <form onSubmit={manageLogin} className='inputBlock'>
                 <input
-                className='userInput'
+                    className='userInput'
                     type="email"
                     value={email}
                     onChange={setTheEmail}
@@ -39,12 +38,12 @@ function Login({onRegister, onSuccess}) {
                     onChange={setThePword}
                     placeholder="Enter Password"
                 />
-                <button className='userButton'type="submit">Login</button>
-                <p className='regLink'>Don't have an account? <button onClick={onRegister}>click here</button></p>
+                <button className='userButton'type="submit">Register</button>
+                <p className='regLink'>Already have an account? <button onClick={onLogin}>click here</button></p>
             </form>
         </div>
     );
 }
 
-export default Login;
+export default Register;
 
