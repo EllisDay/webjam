@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MediCheck</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">✓</div>
+          <h1 class="title">MediCheck</h1>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-inner">
+          <h2 class="hero-title">Verify documents. Compare prices.</h2>
+          <p class="hero-subtitle">
+            A simple, trustworthy place to check healthcare documents and explore fair pricing.
+          </p>
+          <div class="hero-cta">
+            <a href="#documents" class="button primary">Check documents</a>
+            <a href="#prices" class="button ghost">Examine prices</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="documents" class="section">
+        <div class="container">
+          <div class="section-head">
+            <h3>Document Check</h3>
+            <p>Upload and validate files for authenticity and completeness.</p>
+          </div>
+
+          <div class="card-grid">
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">📄</div>
+              <h4>Upload a document</h4>
+              <p>We’ll scan and flag issues (missing fields, mismatched IDs, etc.).</p>
+              <form class="inline-form" onsubmit="return false;">
+                <input type="file" aria-label="Choose document to check" />
+                <button class="button primary" type="button" id="doc-check-btn">
+                  Check now
+                </button>
+              </form>
+              <p class="coming-soon">Backend hookup pending — connect endpoint later.</p>
+            </article>
+
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">🔎</div>
+              <h4>Document status</h4>
+              <p>Look up the review status by reference ID.</p>
+              <form class="inline-form" onsubmit="return false;">
+                <input type="text" placeholder="Enter reference ID" aria-label="Reference ID" />
+                <button class="button" type="button" id="doc-status-btn">
+                  Check status
+                </button>
+              </form>
+              <p class="coming-soon">Stub UI only — add fetch to your API.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="prices" class="section alt">
+        <div class="container">
+          <div class="section-head">
+            <h3>Price Explorer</h3>
+            <p>Compare procedure costs across providers and insurance networks.</p>
+          </div>
+
+          <div class="card-grid">
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">🏥</div>
+              <h4>Search by procedure</h4>
+              <p>Find typical cash prices and negotiated rates (where available).</p>
+              <form class="inline-form" onsubmit="return false;">
+                <input type="text" placeholder="e.g., MRI, CPT 70551" aria-label="Procedure" />
+                <button class="button primary" type="button" id="price-search-btn">
+                  Search
+                </button>
+              </form>
+              <p class="coming-soon">Results table will render here.</p>
+            </article>
+
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">🧭</div>
+              <h4>Nearby providers</h4>
+              <p>Explore providers by distance and price transparency.</p>
+
+              <!-- ✅ Your active Nearby Providers UI -->
+              <form class="inline-form" onsubmit="return false;">
+                <input id="nearby-input" type="text" placeholder="ZIP or City" aria-label="Location" />
+                <button class="button" type="button" id="nearby-btn">Search</button>
+              </form>
+
+              <div id="nearby-status" class="status-row"></div>
+              <div id="nearby-results" class="nearby-grid"></div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p class="muted">© <span id="year"></span> MediCheck. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- ✅ JavaScript connection -->
+    <script>
+      const API_BASE = "http://localhost:8000"; // FastAPI backend
+
+      const toast = (msg) => {
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        requestAnimationFrame(() => t.classList.add('show'));
+        setTimeout(() => { t.classList.remove('show'); t.remove(); }, 2200);
+      };
+
+      const setNearbyStatus = (msg, kind='info') => {
+        const el = document.getElementById('nearby-status');
+        if (!el) return;
+        el.textContent = msg || '';
+        el.className = 'status-row ' + kind;
+      };
+
+      const renderNearby = (results) => {
+        const wrap = document.getElementById('nearby-results');
+        if (!wrap) return;
+        wrap.innerHTML = '';
+        if (!results || results.length === 0) {
+          wrap.innerHTML = '<p class="muted">No nearby hospitals found.</p>';
+          return;
+        }
+        for (const r of results) {
+          const card = document.createElement('div');
+          card.className = 'nearby-card';
+          const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name)}`;
+          card.innerHTML = `
+            <div class="nearby-card__icon" aria-hidden="true">🏥</div>
+            <div class="nearby-card__content">
+              <div class="nearby-card__title">${r.name}</div>
+              <div class="nearby-card__meta">
+                <span>${r.distance.toFixed(1)} mi</span>
+                ${r.formatted ? `<span>· ${r.formatted}</span>` : ''}
+              </div>
+            </div>
+            <a class="button small" href="${maps}" target="_blank" rel="noopener">Map</a>
+          `;
+          wrap.appendChild(card);
+        }
+      };
+
+      document.getElementById('nearby-btn')?.addEventListener('click', async () => {
+        const input = document.getElementById('nearby-input');
+        const q = input.value.trim();
+        if (!q) return toast('Enter a city or ZIP');
+        try {
+          setNearbyStatus('Searching nearby providers…');
+          const res = await fetch(`${API_BASE}/api/nearby?q=${encodeURIComponent(q)}&limit=25`);
+          if (!res.ok) throw new Error(await res.text());
+          const data = await res.json();
+          setNearbyStatus(`Showing closest ${data.count}.`);
+          renderNearby(data.results);
+        } catch (e) {
+          console.error(e);
+          setNearbyStatus('Something went wrong. Check console.', 'error');
+        }
+      });
+
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
